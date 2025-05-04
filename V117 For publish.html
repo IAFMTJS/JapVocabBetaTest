@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>JAPVOC Advanced Quiz</title>
+  <style>
+    /* Reset and base */
+    * {
+      box-sizing: border-box;
+    }
+
+    h2 {
+      color: #9c9c8d; 
+    }
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      margin: 0; padding: 30px 15px 60px;
+      text-align: center;
+      background-image: url('sakura.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      color: #222;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #quiz-container, #progress-page {
+      width: 100%;
+      max-width: 600px;
+      background: white;
+      border-radius: 10px;
+      padding: 20px 25px 35px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+    #h2 {
+      margin-top: 0;
+      font-weight: 700;
+      color: #004a99;
+    }
+    button {
+      font-size: 16px;
+      padding: 10px 20px;
+      margin: 4px;
+      border: none;
+      border-radius: 6px;
+      background-color: #3071a9;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+    button:hover:not(:disabled) {
+      background-color: #0056b3;
+    }
+    button:disabled {
+      background-color: #aaa;
+      cursor: default;
+    }
+    input[type="text"], select {
+      font-size: 16px;
+      padding: 8px 10px;
+      margin: 10px 4px 20px;
+      border-radius: 6px;
+      border: 1.5px solid #ccc;
+      width: calc(100% - 28px);
+      max-width: 280px;
+    }
+    #mode-selection, #progress-info {
+      margin-bottom: 15px;
+      font-weight: 600;
+    }
+    #category-buttons {
+      margin: 20px 0;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+    }
+    #category-buttons button.category-btn {
+      background-color: #9c9c8d;
+      border-radius: 5px;
+      min-width: 86px;
+      margin: 3px 6px;
+      cursor: pointer;
+      user-select: none;
+      max-width: 130px;
+      flex-grow: 1;
+    }
+    #category-buttons button.category-btn.active {
+      background-color: #007BFF;
+    }
+    #category-buttons button.category-btn:hover:not(.active) {
+      background-color: #45a049;
+    }
+    #scoreboardBtn, #progressBtn {
+      position: fixed;
+      top: 20px;
+      background-color: #007BFF;
+      padding: 10px 16px;
+      border-radius: 5px;
+      color: white;
+      border: none;
+      font-size: 15px;
+      cursor: pointer;
+      z-index: 1000;
+      user-select: none;
+    }
+    #scoreboardBtn:hover, #progressBtn:hover {
+      background-color: #0056b3;
+    }
+    #scoreboardBtn {
+      right: 20px;
+    }
+    #progressBtn {
+      right: 140px;
+    }
+    #homeBtn {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      padding: 10px 20px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      z-index: 1000;
+      user-select: none;
+    }
+    #homeBtn:hover {
+      background-color: #0056b3;
+    }
+    #hintButton {
+      background-color: #ff9800;
+      margin-top: 6px;
+      border-radius: 5px;
+      font-weight: 600;
+    }
+    #hintButton:hover {
+      background-color: #e68a00;
+    }
+    #scoreboard {
+      margin-top: 60px;
+      padding: 20px;
+      background-color: #f4f4f4;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      text-align: left;
+      display: none;
+    }
+    #scoreList {
+      max-height: 320px;
+      overflow-y: auto;
+      list-style: none;
+      padding: 0;
+      margin: 15px 0 0;
+    }
+    #scoreList li {
+      padding: 12px 15px;
+      margin: 5px auto;
+      background-color: #e1e1e1;
+      border-radius: 5px;
+      font-size: 18px;
+      max-width: 600px;
+      line-height: 1.3;
+      word-break: break-word;
+    }
+    #start-screen, #quiz, #result, #review-mode {
+      margin-bottom: 10px;
+    }
+    #review-mode {
+      display: none;
+    }
+    #quiz {
+      display: none;
+    }
+    #question {
+      font-weight: bold;
+      font-size: 20px;
+      margin-bottom: 15px;
+    }
+    #options {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    #options button {
+      min-width: 140px;
+      border-radius: 6px;
+    }
+    #feedback {
+      font-weight: 700;
+      min-height: 28px;
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+    #progress-container {
+      width: 100%;
+      height: 20px;
+      background-color: #ddd;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    #progress-bar {
+      height: 100%;
+      background-color: #4caf50;
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+    #result {
+      font-size: 22px;
+      font-weight: 700;
+      color: #004a99;
+      min-height: 54px;
+      margin-top: 15px;
+      display: none;
+    }
+    #restartBtn {
+      margin-top: 15px;
+      display: none;
+    }
+    #answerInputContainer {
+      margin-bottom: 20px;
+    }
+    #answerInput {
+      width: 100%;
+      max-width: 280px;
+    }
+    #submitAnswerBtn {
+      margin-top: 6px;
+      padding: 9px 20px;
+      font-size: 16px;
+      border-radius: 6px;
+      background-color: #3071a9;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    #submitAnswerBtn:hover:not(:disabled) {
+      background-color: #0056b3;
+    }
+    #submitAnswerBtn:disabled {
+      background-color: #aaa;
+      cursor: default;
+    }
+    /* Timer styles */
+    #examTimer {
+      margin-bottom: 15px;
+      font-size: 18px;
+      font-weight: 700;
+      color: #004a99;
+    }
+    /* Review section */
+    #review-content {
+      text-align: left;
+      margin-top: 20px;
+    }
+    #review-question {
+      font-weight: bold;
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+    #review-correct, #review-user {
+      margin-bottom: 6px;
+      font-size: 16px;
+    }
+    /* Responsive fixes */
+    @media (max-width: 600px) {
+      body {
+        padding: 20px 10px 50px;
+      }
+      #quiz-container {
+        padding: 15px 20px 30px;
+      }
+      #options button {
+        min-width: 100px;
+        font-size: 14px;
+        padding: 8px 12px;
+      }
+      #scoreboardBtn, #homeBtn, #progressBtn {
+        padding: 8px 12px;
+        font-size: 14px;
+      }
+      #scoreList li {
+        font-size: 16px;
+      }
+      #category-buttons button.category-btn {
+        max-width: 100px;
+      }
+    }
+  </style>
+</head>
+<body>   
+  <button id="homeBtn" style="display:none;">Home</button>
+  <button id="scoreboardBtn">Scoreboard</button>
+  <button id="progressBtn">Progress</button>
+  <button id="hintButton" style="display:none;">Hint</button>
+
+  <!-- Scoreboard Section -->
+  <div id="scoreboard" style="display:none;">
+    <h2>Scoreboard</h2>
+    <ul id="scoreList"></ul>
+    <button id="clearScoreboardBtn">Clear Scoreboard</button>
+    <button id="backToStartBtn">Back to Start</button>
+  </div>
+
+  <!-- Progress Page Section -->
+  <div id="progress-page" style="display:none;">
+    <h2>Your Progress</h2>
+    <div id="progress-info"></div>
+    <h3>Achievements</h3>
+    <ul id="achievementsList"></ul>
+    <h3>Words Due for Review (SRS)</h3>
+    <ul id="srsList"></ul>
+    <button id="backFromProgressBtn">Back to Start</button>
+  </div>
+
+  <!-- Main Quiz Container -->
+  <div id="quiz-container">
+    <h2>Welcome to the Japanese quiz!</h2>
+
+    <!-- Start Screen -->
+    <div id="start-screen">
+      <div id="mode-selection" aria-label="Mode selection">
+        <label>
+          <input type="radio" name="mode" value="practice" checked />
+          Practice (score won't count)
+        </label>
+        <label style="margin-left: 15px;">
+          <input type="radio" name="mode" value="exam" />
+          Examination (score counts)
+        </label>
+      </div>
+      <div>
+        <label for="username" style="font-weight:600;">Name:</label><br />
+        <input type="text" id="username" placeholder="Enter your name" autocomplete="off" />
+      </div>
+      <div id="category-buttons" aria-label="Category buttons" role="list">
+        <button type="button" class="category-btn" data-category="food" role="listitem">Food</button>
+        <button type="button" class="category-btn" data-category="animals" role="listitem">Animals</button>
+        <button type="button" class="category-btn" data-category="colors" role="listitem">Colors</button>
+        <button type="button" class="category-btn" data-category="family" role="listitem">Family</button>
+        <button type="button" class="category-btn" data-category="basics" role="listitem">Basics</button>
+        <button type="button" class="category-btn" data-category="weather" role="listitem">Weather</button>
+        <button type="button" class="category-btn" data-category="bodyparts" role="listitem">Bodyparts</button>
+        <button type="button" class="category-btn" data-category="supermarket" role="listitem">Supermarket</button>
+        <button type="button" class="category-btn" data-category="verbs" role="listitem">Verbs</button>
+        <button type="button" class="category-btn" data-category="greetings" role="listitem">Greetings</button>
+        <button type="button" class="category-btn" data-category="all" role="listitem">All Categories</button>
+      </div>
+      <div>
+        <label for="difficulty" style="font-weight:600;">Difficulty:</label><br />
+        <select id="difficulty" aria-label="Choose difficulty">
+          <option value="all">All</option>
+          <option value="easy">Easy</option>
+          <option value="medium" selected>Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+      </div>
+      <div id="questionCountContainer" style="display:none;">
+        <label for="questionCount" style="font-weight:600;">Number of Questions:</label><br />
+        <select id="questionCount" aria-label="Choose number of questions">
+          <option value="max" selected>Maximum</option>
+        </select>
+      </div>
+      <button id="startBtn" aria-label="Start quiz">Start Quiz</button>
+    </div>
+
+    <!-- Quiz Screen -->
+    <div id="quiz" style="display:none;">
+      <div id="examTimer" style="display:none;">Time left: <span id="timerDisplay"></span></div>
+      <div id="question" aria-live="polite"></div>
+      <div id="options" role="list" aria-label="Answer options"></div>
+      <div id="answerInputContainer" style="display:none;">
+        <input type="text" id="answerInput" placeholder="Type your answer (kana or romaji)" autocomplete="off" />
+        <br />
+        <button id="submitAnswerBtn" disabled>Submit Answer</button>
+      </div>
+      <div id="progress-container" aria-label="Progress">
+        <div id="progress-bar"></div>
+      </div>
+      <div id="feedback" aria-live="assertive"></div>
+      <button id="nextQuestionBtn" style="display:none;">Next question</button>
+    </div>
+
+    <!-- Result Screen -->
+    <div id="result" style="display:none;"></div>
+
+    <!-- Review Mode -->
+    <div id="review-mode" style="display:none;">
+      <h3>Review Wrong Answers</h3>
+      <div id="review-question"></div>
+      <div id="review-correct"></div>
+      <div id="review-user"></div>
+      <button id="prevReviewBtn">Previous</button>
+      <button id="nextReviewBtn">Next</button>
+      <button id="endReviewBtn">End Review</button>
+    </div>
+
+    <button id="restartBtn" style="display:none;">Restart</button>
+  </div>
+
+  <script>
+    // Empty wordbank to fill later
+    const wordBank = {
+            food: [
+        { kana: "りんご", romaji: "ringo", nl: "apple", hint: "A fruit often red or green and a key part of the saying 'An apple a day keeps the doctor away.'", difficulty: "easy" },
+        { kana: "みかん", romaji: "mikan", nl: "mandarin orange", hint: "A small citrus fruit with an easy-to-peel skin, often eaten in winter.", difficulty: "easy" },
+        { kana: "さくらんぼ", romaji: "sakuranbo", nl: "cherry", hint: "This fruit is in season during spring and has a pit you must remove before eating.", difficulty: "medium" },
+        { kana: "バナナ", romaji: "banana", nl: "banana", hint: "A yellow fruit with a peel that's easy to remove. A favorite snack for athletes.", difficulty: "easy" },
+        { kana: "ぶどう", romaji: "budou", nl: "grape", hint: "A small, round fruit you can eat or use to make wine.", difficulty: "medium" },
+        { kana: "にんじん", romaji: "ninjin", nl: "carrot", hint: "An orange vegetable often eaten in salads or as a snack, good for your eyes.", difficulty: "easy" },
+        { kana: "じゃがいも", romaji: "jagaimo", nl: "potato", hint: "This nutritious tuber is often cooked or fried and is a staple in many dishes like fries.", difficulty: "medium" },
+        { kana: "とうもろこし", romaji: "toumorokoshi", nl: "corn", hint: "This yellow grain often comes on long ears and is a common summer food.", difficulty: "medium" },
+        { kana: "きゅうり", romaji: "kyuuri", nl: "cucumber", hint: "A green vegetable often eaten raw in salads, known for its refreshing taste.", difficulty: "easy" },
+        { kana: "トマト", romaji: "tomato", nl: "tomato", hint: "A fruit often used as a vegetable, known for its red color and juicy texture.", difficulty: "easy" },
+        { kana: "なす", romaji: "nasu", nl: "eggplant", hint: "This vegetable has a purple skin and is often baked or pureed in dishes like moussaka.", difficulty: "medium" },
+        { kana: "ピーマン", romaji: "piiman", nl: "bell pepper", hint: "This vegetable comes in various colors like red, green, and yellow, and is an important flavor enhancer.", difficulty: "medium" },
+        { kana: "おにぎり", romaji: "onigiri", nl: "rice ball", hint: "A traditional Japanese snack made of rice, often wrapped in seaweed and filled with various flavors.", difficulty: "easy" },
+        { kana: "ラーメン", romaji: "ramen", nl: "ramen", hint: "A popular Japanese dish consisting of noodles in a broth, often served with meat and vegetables.", difficulty: "medium" },
+        { kana: "すし", romaji: "sushi", nl: "sushi", hint: "A Japanese delicacy of rice combined with fish or vegetables, often served with seaweed.", difficulty: "medium" },
+        { kana: "てんぷら", romaji: "tenpura", nl: "tempura", hint: "A dish where fish or vegetables are fried in a light batter, typical of Japanese cuisine.", difficulty: "hard" },
+        { kana: "うどん", romaji: "udon", nl: "udon noodles", hint: "Thick Japanese noodles often served in a broth.", difficulty: "medium" },
+        { kana: "おちゃ", romaji: "ocha", nl: "tea", hint: "A widely consumed drink, often served with meals in Japan.", difficulty: "easy" },
+        { kana: "みそしる", romaji: "misoshiru", nl: "miso soup", hint: "A soup often served as a side dish in Japanese meals, made from miso and broth.", difficulty: "medium" },
+        { kana: "やきとり", romaji: "yakitori", nl: "grilled chicken", hint: "A popular Japanese snack of chicken skewered and grilled.", difficulty: "medium" }
+      ],
+      animals: [
+        { kana: "ねこ", romaji: "neko", nl: "cat", hint: "Often kept as a pet, playful in nature, and loves to hunt mice.", difficulty: "easy" },
+        { kana: "いぬ", romaji: "inu", nl: "dog", hint: "Man's best friend, known for its loyalty and companionship.", difficulty: "easy" },
+        { kana: "うさぎ", romaji: "usagi", nl: "rabbit", hint: "Known for its long ears and ability to jump quickly.", difficulty: "easy" },
+        { kana: "とり", romaji: "tori", nl: "bird", hint: "Animals that fly and lay eggs, such as pigeons or eagles.", difficulty: "easy" },
+        { kana: "さる", romaji: "saru", nl: "monkey", hint: "Known for playful behavior and ability to climb trees.", difficulty: "medium" },
+        { kana: "くま", romaji: "kuma", nl: "bear", hint: "A large mammal that often lives in forests and loves honey.", difficulty: "medium" },
+        { kana: "きつね", romaji: "kitsune", nl: "fox", hint: "Known for its cunning and often has a reddish-brown coat.", difficulty: "medium" },
+        { kana: "りす", romaji: "risu", nl: "squirrel", hint: "A small animal that collects nuts and often lives in trees.", difficulty: "easy" },
+        { kana: "さめ", romaji: "same", nl: "shark", hint: "A predator that lives in the ocean, known for its sharp teeth.", difficulty: "hard" },
+        { kana: "へび", romaji: "hebi", nl: "snake", hint: "Moves without legs and can be dangerous due to its venomous bite.", difficulty: "medium" },
+        { kana: "とかげ", romaji: "tokage", nl: "lizard", hint: "A reptile often found in sunny areas and moves quickly.", difficulty: "medium" },
+        { kana: "ぞう", romaji: "zou", nl: "elephant", hint: "The largest land animal, recognizable by its long trunk and large ears.", difficulty: "hard" },
+        { kana: "きりん", romaji: "kirin", nl: "giraffe", hint: "With its long neck and spots, one of the tallest animals on earth.", difficulty: "hard" },
+        { kana: "ひつじ", romaji: "hitsuji", nl: "sheep", hint: "Often kept for wool and a symbol of peace.", difficulty: "medium" },
+        { kana: "やぎ", romaji: "yagi", nl: "goat", hint: "Known for playful nature and ability to climb rocky terrain.", difficulty: "medium" },
+        { kana: "いのしし", romaji: "inoshishi", nl: "wild boar", hint: "A pig that lives in forests, often seen as a wild animal.", difficulty: "medium" },
+        { kana: "しろくま", romaji: "shirokuma", nl: "polar bear", hint: "Lives in cold climates and has thick fur to keep warm.", difficulty: "medium" },
+        { kana: "あらいぐま", romaji: "araiguma", nl: "raccoon", hint: "Known for its 'hands' that look like human hands and curious behavior.", difficulty: "medium" },
+        { kana: "たぬき", romaji: "tanuki", nl: "raccoon dog", hint: "Often depicted in Japanese folklore with a humorous character.", difficulty: "medium" }
+      ],
+      colors: [
+        { kana: "あか", romaji: "aka", nl: "red", hint: "The color of a common fruit we know as apple, or the color of passion and love.", difficulty: "easy" },
+        { kana: "あお", romaji: "ao", nl: "blue", hint: "The color of the ocean or the sky on a clear day.", difficulty: "easy" },
+        { kana: "きいろ", romaji: "kiiro", nl: "yellow", hint: "The color of the sun and many flowers, like the sunflower.", difficulty: "easy" },
+        { kana: "みどり", romaji: "midori", nl: "green", hint: "The color of grass and trees in spring.", difficulty: "easy" },
+        { kana: "むらさき", romaji: "murasaki", nl: "purple", hint: "The color of lavender and some grapes.", difficulty: "medium" },
+        { kana: "しろ", romaji: "shiro", nl: "white", hint: "The color of snow and milk.", difficulty: "easy" },
+        { kana: "くろ", romaji: "kuro", nl: "black", hint: "The color of night or a black cat.", difficulty: "easy" },
+        { kana: "オレンジ", romaji: "orenji", nl: "orange", hint: "The color of a citrus fruit and autumn leaves.", difficulty: "medium" },
+        { kana: "ピンク", romaji: "pinku", nl: "pink", hint: "The color of many flowers, like roses, or a soft shade of red.", difficulty: "medium" },
+        { kana: "ちゃいろ", romaji: "chairo", nl: "brown", hint: "The color of chocolate, coffee, and many animals, such as bears.", difficulty: "medium" },
+        { kana: "はいいろ", romaji: "haiiro", nl: "gray", hint: "The color of rainy clouds or the surface of a stone.", difficulty: "medium" },
+        { kana: "きん", romaji: "kin", nl: "gold", hint: "The color of the precious metal often used in jewelry.", difficulty: "hard" },
+        { kana: "ぎん", romaji: "gin", nl: "silver", hint: "The color of the precious metal used for coins and jewelry.", difficulty: "hard" }
+      ],
+      family: [
+        { kana: "おとうさん", romaji: "otousan", nl: "father (formal)", hint: "The man responsible for the family. He cares for his children and protects his family.", difficulty: "medium" },
+        { kana: "おかあさん", romaji: "okaasan", nl: "mother (formal)", hint: "The woman who carries and cares for her children, often the primary caregiver in a family.", difficulty: "medium" },
+        { kana: "あに", romaji: "ani", nl: "older brother", hint: "The older male sibling in a family, often playing a protective role for younger siblings.", difficulty: "medium" },
+        { kana: "あね", romaji: "ane", nl: "older sister", hint: "The older female sibling in a family, often a mentor for younger siblings.", difficulty: "medium" },
+        { kana: "おとうと", romaji: "otouto", nl: "younger brother", hint: "The younger male sibling in a family.", difficulty: "easy" },
+        { kana: "いもうと", romaji: "imouto", nl: "younger sister", hint: "The younger female sibling in a family.", difficulty: "easy" },
+        { kana: "おじいさん", romaji: "ojiisan", nl: "grandfather", hint: "The father of your parents, often an elderly man who brings much wisdom.", difficulty: "hard" },
+        { kana: "おばあさん", romaji: "obaasan", nl: "grandmother", hint: "The mother of your parents, often an elderly woman who provides loving care.", difficulty: "hard" },
+        { kana: "おじさん", romaji: "ojisan", nl: "uncle", hint: "The brother of your father or mother, often an older man in your family.", difficulty: "medium" },
+        { kana: "おばさん", romaji: "obasan", nl: "aunt", hint: "The sister of your father or mother, often a female parental figure.", difficulty: "medium" },
+        { kana: "いとこ", romaji: "itoko", nl: "cousin", hint: "The children of your aunt or uncle, i.e., relatives who are not siblings.", difficulty: "medium" },
+        { kana: "おい", romaji: "oi", nl: "nephew", hint: "The son of your aunt or uncle.", difficulty: "easy" },
+        { kana: "めい", romaji: "mei", nl: "niece", hint: "The daughter of your aunt or uncle.", difficulty: "easy" },
+        { kana: "はは", romaji: "haha", nl: "mother (informal)", hint: "The woman who gave birth to you or cares for you. Often a motherly figure.", difficulty: "medium" },
+        { kana: "ちち", romaji: "chichi", nl: "father (informal)", hint: "The man who raised or cares for you. Often a protective figure.", difficulty: "medium" },
+        { kana: "あいじん", romaji: "aijin", nl: "partner", hint: "The person with whom you have a romantic relationship, like a man or woman.", difficulty: "hard" },
+        { kana: "こども", romaji: "kodomo", nl: "child", hint: "A young person dependent on their parents for care and upbringing.", difficulty: "easy" },
+        { kana: "おんな", romaji: "onna", nl: "woman", hint: "An adult female, often associated with care, love, and nurturing.", difficulty: "medium" },
+        { kana: "おとこ", romaji: "otoko", nl: "man", hint: "An adult male, often considered the 'provider' in many societies.", difficulty: "medium" }
+      ],
+      Basics: [
+    { kana: "これ", romaji: "kore", nl: "this", hint: "Used to refer to something near the speaker.", difficulty: "easy" },
+    { kana: "それ", romaji: "sore", nl: "that", hint: "Used to refer to something near the listener.", difficulty: "easy" },
+    { kana: "あれ", romaji: "are", nl: "that (over there)", hint: "Used to refer to something far from both the speaker and listener.", difficulty: "easy" },
+    { kana: "だれ", romaji: "dare", nl: "who", hint: "Used to ask about a person.", difficulty: "easy" },
+    { kana: "なに", romaji: "nani", nl: "what", hint: "Used to ask about something.", difficulty: "easy" },
+    { kana: "どこ", romaji: "doko", nl: "where", hint: "Used to ask about a place or location.", difficulty: "easy" },
+    { kana: "いつ", romaji: "itsu", nl: "when", hint: "Used to ask about time.", difficulty: "easy" },
+    { kana: "どうして", romaji: "doushite", nl: "why", hint: "Used to ask the reason for something.", difficulty: "medium" },
+    { kana: "どう", romaji: "dou", nl: "how", hint: "Used to ask about manner or condition.", difficulty: "easy" },
+    { kana: "なん", romaji: "nan", nl: "what (alternative form)", hint: "Another way to say 'what', often used before a noun.", difficulty: "medium" },
+    { kana: "どれ", romaji: "dore", nl: "which", hint: "Used to ask about one item from a selection.", difficulty: "easy" },
+    { kana: "どの", romaji: "dono", nl: "which (before a noun)", hint: "Used to ask about a specific item or thing when the noun is known.", difficulty: "easy" },
+    { kana: "なんで", romaji: "nande", nl: "why (informal)", hint: "A more casual way to ask why.", difficulty: "medium" },
+    { kana: "いくつ", romaji: "ikutsu", nl: "how many (age/objects)", hint: "Used to ask about number or age.", difficulty: "easy" },
+    { kana: "いくら", romaji: "ikura", nl: "how much", hint: "Used to ask about price or cost.", difficulty: "medium" },
+    { kana: "だれの", romaji: "dare no", nl: "whose", hint: "Used to ask about ownership.", difficulty: "medium" },
+    { kana: "どんな", romaji: "donna", nl: "what kind of", hint: "Used to ask about the type or nature of something.", difficulty: "medium" },
+    { kana: "なぜ", romaji: "naze", nl: "why (formal)", hint: "A more formal way to ask why.", difficulty: "medium" },
+    { kana: "いつも", romaji: "itsumo", nl: "always", hint: "Used to refer to something that happens regularly or always.", difficulty: "easy" },
+    { kana: "どういう", romaji: "dou iu", nl: "what kind of", hint: "Used to ask for clarification about something.", difficulty: "medium" }
+  ],
+      weather: [
+        { kana: "あめ", romaji: "ame", nl: "rain", hint: "Precipitation that falls from the sky in drops.", difficulty: "easy" },
+        { kana: "ゆき", romaji: "yuki", nl: "snow", hint: "Frozen water that falls as white flakes.", difficulty: "easy" },
+        { kana: "くも", romaji: "kumo", nl: "cloud", hint: "A collection of water droplets or ice crystals in the sky.", difficulty: "easy" },
+        { kana: "たいよう", romaji: "taiyou", nl: "sun", hint: "The star at the center of our solar system, providing light and warmth.", difficulty: "easy" },
+        { kana: "かぜ", romaji: "kaze", nl: "wind", hint: "Moving air, especially when it is strong or cold.", difficulty: "easy" },
+        { kana: "あらし", romaji: "arashi", nl: "storm", hint: "A violent weather condition with heavy rain, strong winds, and thunder.", difficulty: "medium" },
+        { kana: "せんすい", romaji: "sensui", nl: "fog", hint: "A thick cloud of tiny water droplets near the ground, making visibility low.", difficulty: "medium" },
+        { kana: "あつい", romaji: "atsui", nl: "hot", hint: "High temperature, often causing sweating.", difficulty: "easy" },
+        { kana: "さむい", romaji: "samui", nl: "cold", hint: "Low temperature, often causing shivering.", difficulty: "easy" },
+        { kana: "ふぶき", romaji: "fubuki", nl: "blizzard", hint: "A severe snowstorm with strong winds and low visibility.", difficulty: "hard" },
+        { kana: "だんぼう", romaji: "danbou", nl: "heater", hint: "A device used to warm up a room or space.", difficulty: "medium" },
+        { kana: "ひょう", romaji: "hyou", nl: "hail", hint: "Frozen chunks of ice that fall from the sky.", difficulty: "medium" },
+        { kana: "しけ", romaji: "shike", nl: "humidity", hint: "The amount of water vapor in the air.", difficulty: "medium" },
+        { kana: "みぞれ", romaji: "mizore", nl: "sleet", hint: "Frozen rain that falls as a mixture of rain and snow.", difficulty: "hard" },
+        { kana: "あめがふる", romaji: "ame ga furu", nl: "it rains", hint: "To experience rainfall.", difficulty: "easy" },
+        { kana: "かぜがふく", romaji: "kaze ga fuku", nl: "it is windy", hint: "To have wind blowing.", difficulty: "easy" },
+        { kana: "かんき", romaji: "kanki", nl: "dry season", hint: "A period of the year with little rain.", difficulty: "medium" },
+        { kana: "しつど", romaji: "shitsudo", nl: "humidity", hint: "The level of moisture in the air.", difficulty: "medium" },
+        { kana: "ひざし", romaji: "hizashi", nl: "sunshine", hint: "Direct sunlight or warm rays from the sun.", difficulty: "easy" }
+      ],
+      bodyparts: [
+    { kana: "あたま", romaji: "atama", nl: "head", hint: "The topmost part of the human body, containing the brain.", difficulty: "easy" },
+    { kana: "め", romaji: "me", nl: "eye", hint: "The organ responsible for sight.", difficulty: "easy" },
+    { kana: "みみ", romaji: "mimi", nl: "ear", hint: "The organ responsible for hearing.", difficulty: "easy" },
+    { kana: "はな", romaji: "hana", nl: "nose", hint: "The organ used for smelling and breathing.", difficulty: "easy" },
+    { kana: "くち", romaji: "kuchi", nl: "mouth", hint: "The opening through which we eat, drink, and speak.", difficulty: "easy" },
+    { kana: "て", romaji: "te", nl: "hand", hint: "The body part at the end of the arm, used for grasping.", difficulty: "easy" },
+    { kana: "あし", romaji: "ashi", nl: "foot/leg", hint: "The body part used for standing, walking, and running.", difficulty: "easy" },
+    { kana: "うで", romaji: "ude", nl: "arm", hint: "The body part between the shoulder and the hand.", difficulty: "easy" },
+    { kana: "あご", romaji: "ago", nl: "chin", hint: "The protruding part of the face below the mouth.", difficulty: "medium" },
+    { kana: "せなか", romaji: "senaka", nl: "back", hint: "The rear part of the torso, extending from the neck to the lower body.", difficulty: "medium" },
+    { kana: "おなか", romaji: "onaka", nl: "stomach", hint: "The part of the body where food is digested.", difficulty: "medium" },
+    { kana: "ともだち", romaji: "tomodachi", nl: "shoulder", hint: "The upper part of the arm, connecting to the neck.", difficulty: "medium" },
+    { kana: "ひじ", romaji: "hiji", nl: "elbow", hint: "The joint between the upper arm and forearm.", difficulty: "medium" },
+    { kana: "てくび", romaji: "tekubi", nl: "wrist", hint: "The joint connecting the hand to the forearm.", difficulty: "medium" },
+    { kana: "ゆび", romaji: "yubi", nl: "finger", hint: "The digits on your hand, used for grabbing or pointing.", difficulty: "easy" },
+    { kana: "あしのゆび", romaji: "ashi no yubi", nl: "toe", hint: "The digits on your foot.", difficulty: "medium" },
+    { kana: "おしり", romaji: "oshiri", nl: "buttocks", hint: "The rounded part of the body you sit on.", difficulty: "medium" },
+    { kana: "むね", romaji: "mune", nl: "chest", hint: "The part of the body between the neck and abdomen.", difficulty: "medium" },
+    { kana: "のど", romaji: "nodo", nl: "throat", hint: "The part of the body that connects the mouth to the stomach.", difficulty: "medium" }
+  ],
+      supermarket: [
+    { kana: "ぎゅうにく", romaji: "gyuuniku", nl: "beef", hint: "Meat from a cow.", difficulty: "easy" },
+    { kana: "とりにく", romaji: "toriniku", nl: "chicken", hint: "Meat from a chicken.", difficulty: "easy" },
+    { kana: "やさい", romaji: "yasai", nl: "vegetable", hint: "Edible plants or parts of plants.", difficulty: "easy" },
+    { kana: "くだもの", romaji: "kudamono", nl: "fruit", hint: "The edible, usually sweet product of a plant.", difficulty: "easy" },
+    { kana: "パン", romaji: "pan", nl: "bread", hint: "A baked food made from flour and water.", difficulty: "easy" },
+    { kana: "たまご", romaji: "tamago", nl: "egg", hint: "A round object laid by female birds, especially chickens, eaten as food.", difficulty: "easy" },
+    { kana: "ごはん", romaji: "gohan", nl: "rice", hint: "A staple food made from cooked rice.", difficulty: "easy" },
+    { kana: "みず", romaji: "mizu", nl: "water", hint: "A clear, colorless liquid essential for life.", difficulty: "easy" },
+    { kana: "さかな", romaji: "sakana", nl: "fish", hint: "A water-dwelling animal, often used for food.", difficulty: "easy" },
+    { kana: "みそ", romaji: "miso", nl: "miso", hint: "A Japanese paste made from fermented soybeans, used in soups.", difficulty: "medium" },
+    { kana: "しょうゆ", romaji: "shouyu", nl: "soy sauce", hint: "A salty sauce made from fermented soybeans.", difficulty: "medium" },
+    { kana: "おちゃ", romaji: "ocha", nl: "tea", hint: "A beverage made by infusing dried leaves in hot water.", difficulty: "easy" },
+    { kana: "ジュース", romaji: "juusu", nl: "juice", hint: "A liquid extracted from fruits or vegetables.", difficulty: "easy" },
+    { kana: "さとう", romaji: "satou", nl: "sugar", hint: "A sweet crystalline substance used in cooking.", difficulty: "easy" },
+    { kana: "しお", romaji: "shio", nl: "salt", hint: "A white crystalline substance used for seasoning.", difficulty: "easy" },
+    { kana: "たれ", romaji: "tare", nl: "sauce", hint: "A flavorful liquid used for marinating or dipping.", difficulty: "medium" },
+    { kana: "ちょうみりょう", romaji: "choumiryou", nl: "seasoning", hint: "A substance used to add flavor to food.", difficulty: "medium" },
+    { kana: "せんべい", romaji: "senbei", nl: "rice cracker", hint: "A traditional Japanese snack made from rice.", difficulty: "medium" },
+    { kana: "りんご", romaji: "ringo", nl: "apple", hint: "A fruit often red or green.", difficulty: "easy" }
+  ],
+      verbs: [
+    { kana: "たべる", romaji: "taberu", nl: "to eat", hint: "To consume food.", difficulty: "easy" },
+    { kana: "のむ", romaji: "nomu", nl: "to drink", hint: "To consume liquids.", difficulty: "easy" },
+    { kana: "ねる", romaji: "neru", nl: "to sleep", hint: "To rest with the eyes closed, typically at night.", difficulty: "easy" },
+    { kana: "あるく", romaji: "aruku", nl: "to walk", hint: "To move by foot.", difficulty: "easy" },
+    { kana: "はなす", romaji: "hanasu", nl: "to speak", hint: "To communicate using words.", difficulty: "easy" },
+    { kana: "きく", romaji: "kiku", nl: "to ask", hint: "To inquire about something.", difficulty: "easy" },
+    { kana: "みる", romaji: "miru", nl: "to see", hint: "To look at something with your eyes.", difficulty: "easy" },
+    { kana: "きる", romaji: "kiru", nl: "to cut", hint: "To divide or slice something with a sharp object.", difficulty: "easy" },
+    { kana: "あそぶ", romaji: "asobu", nl: "to play", hint: "To engage in an activity for fun or recreation.", difficulty: "easy" },
+    { kana: "おきる", romaji: "okiru", nl: "to wake up", hint: "To stop sleeping.", difficulty: "easy" },
+    { kana: "うごく", romaji: "ugoku", nl: "to move", hint: "To change position.", difficulty: "medium" },
+    { kana: "およぐ", romaji: "oyogu", nl: "to swim", hint: "To move through water by moving your body.", difficulty: "medium" },
+    { kana: "よむ", romaji: "yomu", nl: "to read", hint: "To interpret written symbols or text.", difficulty: "easy" },
+    { kana: "かく", romaji: "kaku", nl: "to write", hint: "To form letters or symbols with a pen or pencil.", difficulty: "easy" },
+    { kana: "いく", romaji: "iku", nl: "to go", hint: "To move from one place to another.", difficulty: "easy" },
+    { kana: "くる", romaji: "kuru", nl: "to come", hint: "To move toward the speaker or another place.", difficulty: "easy" },
+    { kana: "わかる", romaji: "wakaru", nl: "to understand", hint: "To grasp the meaning or concept of something.", difficulty: "medium" },
+    { kana: "たつ", romaji: "tatsu", nl: "to stand", hint: "To rise to an upright position.", difficulty: "medium" },
+    { kana: "あける", romaji: "akeru", nl: "to open", hint: "To move something from a closed position to an open one.", difficulty: "easy" }
+  ],
+      greetings: [
+    { kana: "こんにちは", romaji: "konnichiwa", nl: "hello", hint: "A greeting used during the day.", difficulty: "easy" },
+    { kana: "おはよう", romaji: "ohayou", nl: "good morning", hint: "A greeting used in the morning.", difficulty: "easy" },
+    { kana: "こんばんは", romaji: "konbanwa", nl: "good evening", hint: "A greeting used in the evening.", difficulty: "easy" },
+    { kana: "おやすみ", romaji: "oyasumi", nl: "good night", hint: "A phrase used when going to bed.", difficulty: "easy" },
+    { kana: "さようなら", romaji: "sayounara", nl: "goodbye", hint: "A way of saying goodbye.", difficulty: "easy" },
+    { kana: "ありがとう", romaji: "arigatou", nl: "thank you", hint: "A way of expressing gratitude.", difficulty: "easy" },
+    { kana: "すみません", romaji: "sumimasen", nl: "excuse me", hint: "A polite expression used to apologize or get someone's attention.", difficulty: "easy" },
+    { kana: "はい", romaji: "hai", nl: "yes", hint: "A positive response or affirmation.", difficulty: "easy" },
+    { kana: "いいえ", romaji: "iie", nl: "no", hint: "A negative response or rejection.", difficulty: "easy" },
+    { kana: "どうぞ", romaji: "douzo", nl: "please", hint: "A polite way of offering or inviting.", difficulty: "easy" },
+    { kana: "いらっしゃいませ", romaji: "irasshaimase", nl: "welcome", hint: "A greeting used by store employees to welcome customers.", difficulty: "medium" },
+    { kana: "お疲れ様", romaji: "otsukaresama", nl: "good job", hint: "A phrase used to show appreciation for someone's effort.", difficulty: "medium" },
+    { kana: "じゃね", romaji: "ja ne", nl: "see you", hint: "A casual way of saying goodbye.", difficulty: "medium" },
+    { kana: "すごい", romaji: "sugoi", nl: "amazing", hint: "A way of expressing admiration or amazement.", difficulty: "medium" },
+    { kana: "どういたしまして", romaji: "douitashimashite", nl: "you're welcome", hint: "A polite response to 'thank you'.", difficulty: "medium" },
+    { kana: "お疲れ様でした", romaji: "otsukaresama deshita", nl: "good work", hint: "A formal phrase used to appreciate someone's work.", difficulty: "medium" },
+    { kana: "お先に失礼します", romaji: "osaki ni shitsurei shimasu", nl: "excuse me, I'm leaving", hint: "A polite phrase used when leaving before others.", difficulty: "hard" },
+    { kana: "よろしくお願いします", romaji: "yoroshiku onegaishimasu", nl: "please take care of this", hint: "A polite phrase used when requesting something.", difficulty: "hard" }
+  ],
+    };
+
+    // --- Variables ---
+    let username = "";
+    let currentDifficulty = "medium";
+    let currentMode = "practice";
+    let quizQuestions = [];
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let currentAnswer = "";
+    let currentKanaAnswer = "";
+    let selectedCategoryForScore = "";
+    let selectedDifficultyForScore = "";
+    let streak = 0; // Streak tracker
+    let maxStreak = 0;
+    let wrongAnswers = []; // For review mode [{question,index,userAnswer,...}]
+    let spacedRepetitionData = JSON.parse(localStorage.getItem('srsData')) || {};
+    let examTimerDuration = 300; // 5 minutes in seconds
+    let examTimeLeft = examTimerDuration;
+    let examTimerInterval = null;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      // Elements
+      const categoryButtons = document.querySelectorAll(".category-btn");
+      const difficultySelect = document.getElementById("difficulty");
+      const questionCountSelect = document.getElementById("questionCount");
+      const questionCountContainer = document.getElementById("questionCountContainer");
+      const modeRadios = document.querySelectorAll('input[name="mode"]');
+      const startBtn = document.getElementById("startBtn");
+      const restartBtn = document.getElementById("restartBtn");
+      const homeBtn = document.getElementById("homeBtn");
+      const scoreboardBtn = document.getElementById("scoreboardBtn");
+      const progressBtn = document.getElementById("progressBtn");
+      const hintButton = document.getElementById("hintButton");
+      const backToStartBtn = document.querySelector("#scoreboard button");
+      const clearScoreboardBtn = document.getElementById("clearScoreboardBtn");
+      const submitAnswerBtn = document.getElementById("submitAnswerBtn");
+      const nextQuestionBtn = document.getElementById("nextQuestionBtn");
+      const scoreList = document.getElementById("scoreList");
+      const progressPage = document.getElementById("progress-page");
+      const progressInfo = document.getElementById("progress-info");
+      const achievementsList = document.getElementById("achievementsList");
+      const srsList = document.getElementById("srsList");
+      const backFromProgressBtn = document.getElementById("backFromProgressBtn");
+      const reviewMode = document.getElementById("review-mode");
+      const reviewQuestion = document.getElementById("review-question");
+      const reviewCorrect = document.getElementById("review-correct");
+      const reviewUser = document.getElementById("review-user");
+      const prevReviewBtn = document.getElementById("prevReviewBtn");
+      const nextReviewBtn = document.getElementById("nextReviewBtn");
+      const endReviewBtn = document.getElementById("endReviewBtn");
+      const examTimer = document.getElementById("examTimer");
+      const timerDisplay = document.getElementById("timerDisplay");
+
+      // Helper Functions
+      function getCurrentCategory() {
+        const activeBtn = document.querySelector("#category-buttons button.active");
+        return activeBtn ? activeBtn.dataset.category : null;
+      }
+
+      function shuffle(arr) {
+        for(let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+      }
+
+      function updateQuestionCountVisibility() {
+        const activeCat = getCurrentCategory();
+        if (activeCat) {
+          questionCountContainer.style.display = "block";
+        } else {
+          questionCountContainer.style.display = "none";
+        }
+      }
+
+      function updateQuestionCountOptions() {
+        const currentCategory = getCurrentCategory();
+        if (!currentCategory) {
+          questionCountSelect.innerHTML = "";
+          questionCountContainer.style.display = "none";
+          return;
+        }
+        let pool = [];
+        if (currentCategory === "all") {
+          for (const cat in wordBank) {
+            pool = pool.concat(wordBank[cat]);
+          }
+        } else if (wordBank[currentCategory]) {
+          pool = wordBank[currentCategory].slice();
+        }
+
+        // Add SRS prioritized words first if in practice mode and category selected
+        if (currentMode === "practice" && currentCategory !== "all") {
+          const dueKeys = Object.keys(spacedRepetitionData).filter(k => {
+            // Item due
+            const entry = spacedRepetitionData[k];
+            return entry.category === currentCategory && entry.nextReview <= Date.now();
+          });
+          const dueItems = dueKeys.map(k => spacedRepetitionData[k].item);
+          // Avoid duplication: filter out dueItems from pool then add them first
+          pool = pool.filter(item => !dueItems.some(due => due.kana === item.kana && due.nl === item.nl));
+          pool = [...dueItems, ...pool];
+        }
+
+        if (currentDifficulty && currentDifficulty !== "all") {
+          pool = pool.filter(item => item.difficulty === currentDifficulty);
+        }
+        const maxQuestions = pool.length;
+        if (maxQuestions === 0) {
+          questionCountContainer.style.display = "none";
+          questionCountSelect.innerHTML = "";
+          return;
+        }
+        questionCountContainer.style.display = "block";
+        const increments = [];
+        for (let i = 5; i <= maxQuestions; i += 5) increments.push(i);
+        if (maxQuestions > 0 && maxQuestions < 5) increments.push(maxQuestions);
+        increments.push("max");
+        questionCountSelect.innerHTML = "";
+        increments.forEach(val => {
+          const option = document.createElement("option");
+          option.value = val === "max" ? "max" : val;
+          option.textContent = val === "max" ? "Maximum" : val;
+          questionCountSelect.appendChild(option);
+        });
+        questionCountSelect.value = "max";
+      }
+
+      // Setup default active category
+      if (!document.querySelector("#category-buttons button.active")) {
+        categoryButtons[categoryButtons.length - 1].classList.add("active");
+      }
+
+      currentDifficulty = difficultySelect.value;
+      currentMode = document.querySelector('input[name="mode"]:checked').value;
+      updateQuestionCountOptions();
+      updateQuestionCountVisibility();
+
+      // Event Listeners setup
+      categoryButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+          categoryButtons.forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          updateQuestionCountOptions();
+          updateQuestionCountVisibility();
+        });
+      });
+
+      difficultySelect.addEventListener("change", () => {
+        currentDifficulty = difficultySelect.value;
+        updateQuestionCountOptions();
+        updateQuestionCountVisibility();
+      });
+
+      modeRadios.forEach(radio => {
+        radio.addEventListener("change", () => {
+          currentMode = document.querySelector('input[name="mode"]:checked').value;
+          examTimer.style.display = currentMode === 'exam' ? 'block' : 'none';
+        });
+      });
+
+      startBtn.addEventListener("click", startQuiz);
+      restartBtn.addEventListener("click", restartQuiz);
+      homeBtn.addEventListener("click", goHome);
+      scoreboardBtn.addEventListener("click", showScoreboard);
+      progressBtn.addEventListener("click", showProgressPage);
+      hintButton.addEventListener("click", showHint);
+      submitAnswerBtn.addEventListener("click", submitTypedAnswer);
+      nextQuestionBtn.addEventListener("click", nextQuestion);
+      backToStartBtn.addEventListener("click", goHome);
+      clearScoreboardBtn.addEventListener("click", clearScoreboardWithPassword);
+      backFromProgressBtn.addEventListener("click", () => {
+        progressPage.style.display = 'none';
+        document.getElementById('start-screen').style.display = 'block';
+      });
+
+      prevReviewBtn.addEventListener("click", () => reviewNavigate(-1));
+      nextReviewBtn.addEventListener("click", () => reviewNavigate(1));
+      endReviewBtn.addEventListener("click", endReviewMode);
+
+      // Timer display vars
+      let examTimerDuration = 300; // 5 minutes total
+      let examTimeLeft = examTimerDuration;
+      let examTimerInterval = null;
+
+      // Review vars
+      let reviewIndex = 0;
+
+      // Achievement state loaded from localStorage
+      let achievements = JSON.parse(localStorage.getItem("achievements")) || {};
+
+      // Functions
+
+      function goHome() {
+        // Hide all sections
+        document.getElementById("quiz").style.display = "none";
+        document.getElementById("result").style.display = "none";
+        document.getElementById("scoreboard").style.display = "none";
+        document.getElementById("progress-page").style.display = "none";
+        document.getElementById("review-mode").style.display = "none";
+
+        // Show the start screen
+        document.getElementById("start-screen").style.display = "block";
+
+        // Reset any necessary variables or states
+        restartQuiz();
+      }
+
+      function startTimer() {
+        if (examTimerInterval) clearInterval(examTimerInterval);
+        examTimeLeft = examTimerDuration;
+        updateTimerDisplay();
+        examTimerInterval = setInterval(() => {
+          examTimeLeft--;
+          if (examTimeLeft <= 0) {
+            clearInterval(examTimerInterval);
+            alert('Time is up! The quiz will end now.');
+            endQuiz();
+          }
+          updateTimerDisplay();
+        }, 1000);
+      }
+      function updateTimerDisplay() {
+        const minutes = Math.floor(examTimeLeft / 60);
+        const seconds = examTimeLeft % 60;
+        timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      }
+      function stopTimer() {
+        if (examTimerInterval) clearInterval(examTimerInterval);
+        examTimerInterval = null;
+      }
+
+      function addAchievement(key, description) {
+        if (!achievements[key]) {
+          achievements[key] = true;
+          localStorage.setItem("achievements", JSON.stringify(achievements));
+          alert(`Achievement unlocked!\n${description}`);
+        }
+      }
+
+      function startQuiz() {
+        username = document.getElementById("username").value.trim();
+        if (!username) {
+          alert("Please enter your name.");
+          return;
+        }
+        const currentCategory = getCurrentCategory();
+        if (!currentCategory) {
+          alert("Please choose a category.");
+          return;
+        }
+        let pool = [];
+        if (currentCategory === "all") {
+          for (const cat in wordBank) {
+            pool = pool.concat(wordBank[cat]);
+          }
+        } else if (wordBank[currentCategory]) {
+          pool = wordBank[currentCategory].slice();
+        } else {
+          alert("Please choose a valid category.");
+          return;
+        }
+        if (currentDifficulty && currentDifficulty !== "all") {
+          pool = pool.filter(item => item.difficulty === currentDifficulty);
+          if (pool.length === 0) {
+            alert("No questions available for the selected difficulty in this category.");
+            return;
+          }
+        }
+        shuffle(pool);
+        let questionCountValue = questionCountSelect.value;
+        let questionCountNumber;
+        if (questionCountValue === "max") {
+          questionCountNumber = pool.length;
+        } else {
+          questionCountNumber = parseInt(questionCountValue, 10);
+          if (isNaN(questionCountNumber) || questionCountNumber > pool.length) {
+            questionCountNumber = pool.length;
+          }
+        }
+        quizQuestions = pool.slice(0, questionCountNumber);
+        currentQuestionIndex = 0;
+        score = 0;
+        streak = 0;
+        maxStreak = 0;
+        wrongAnswers = [];
+        selectedCategoryForScore = currentCategory;
+        selectedDifficultyForScore = currentDifficulty;
+        document.getElementById("start-screen").style.display = "none";
+        document.getElementById("quiz").style.display = "block";
+        document.getElementById("result").style.display = "none";
+        restartBtn.style.display = "none";
+        homeBtn.style.display = "inline-block";
+        scoreboardBtn.style.display = "inline-block";
+        hintButton.style.display = currentMode === "practice" ? "inline-block" : "none";
+        // Handle timer for exam mode
+        if (currentMode === "exam") {
+          examTimer.style.display = "block";
+          startTimer();
+        } else {
+          examTimer.style.display = "none";
+          stopTimer();
+        }
+        loadQuestion();
+        updateStreakDisplay();
+      }
+
+      function loadQuestion() {
+        if (currentQuestionIndex >= quizQuestions.length) {
+          endQuiz();
+          return;
+        }
+        const currentWord = quizQuestions[currentQuestionIndex];
+        currentKanaAnswer = currentWord.kana;
+        currentAnswer = currentWord.nl;
+        const questionDiv = document.getElementById("question");
+        const optionsDiv = document.getElementById("options");
+        const answerInputContainer = document.getElementById("answerInputContainer");
+        const answerInput = document.getElementById("answerInput");
+        const feedbackDiv = document.getElementById("feedback");
+        const nextBtn = document.getElementById("nextQuestionBtn");
+        const submitBtn = document.getElementById("submitAnswerBtn");
+        feedbackDiv.textContent = "";
+        feedbackDiv.style.color = "transparent";
+        nextBtn.style.display = "none";
+        answerInput.value = "";
+        submitBtn.disabled = true;
+        answerInput.disabled = false;
+        if (currentDifficulty === "easy" || currentDifficulty === "medium") {
+          const questionText = currentDifficulty === "easy" ?
+            `What does "${currentWord.kana}" (${currentWord.romaji}) mean?` :
+            `What does "${currentWord.kana}" mean?`;
+          questionDiv.textContent = questionText;
+          answerInputContainer.style.display = "none";
+          optionsDiv.innerHTML = "";
+          let optionsCount = Math.min(4, quizQuestions.length);
+          if (optionsCount < 2) optionsCount = 2;
+          const options = [currentWord];
+          while (options.length < optionsCount) {
+            const randOpt = quizQuestions[Math.floor(Math.random() * quizQuestions.length)];
+            if (!options.some(o => o.nl === randOpt.nl)) options.push(randOpt);
+          }
+          shuffle(options);
+          options.forEach(option => {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.textContent = option.nl;
+            btn.disabled = false;
+            btn.setAttribute("aria-label", `Answer option: ${option.nl}`);
+            btn.onclick = () => checkAnswer(option.nl);
+            optionsDiv.appendChild(btn);
+          });
+        } else if (currentDifficulty === "hard") {
+          questionDiv.textContent = `Write the ${currentWord.nl} in kana or romaji:`;
+          optionsDiv.innerHTML = "";
+          answerInputContainer.style.display = "block";
+          answerInput.focus();
+          submitBtn.disabled = true;
+          answerInput.oninput = () => {
+            submitBtn.disabled = answerInput.value.trim() === "";
+          };
+        } else {
+          questionDiv.textContent = `What does "${currentWord.kana}" (${currentWord.romaji}) mean?`;
+          answerInputContainer.style.display = "none";
+          optionsDiv.innerHTML = "";
+          let optionsCount = Math.min(4, quizQuestions.length);
+          if (optionsCount < 2) optionsCount = 2;
+          const options = [currentWord];
+          while (options.length < optionsCount) {
+            const randOpt = quizQuestions[Math.floor(Math.random() * quizQuestions.length)];
+            if (!options.some(o => o.nl === randOpt.nl)) options.push(randOpt);
+          }
+          shuffle(options);
+          options.forEach(option => {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.textContent = option.nl;
+            btn.disabled = false;
+            btn.setAttribute("aria-label", `Answer option: ${option.nl}`);
+            btn.onclick = () => checkAnswer(option.nl);
+            optionsDiv.appendChild(btn);
+          });
+        }
+        updateProgressBar();
+      }
+
+      function updateStreakDisplay() {
+        let feedbackDiv = document.getElementById("feedback");
+        if (streak > 1) {
+          feedbackDiv.textContent = `🔥 Streak: ${streak}`;
+          feedbackDiv.style.color = "#4caf50";
+        } else {
+          feedbackDiv.style.color = "transparent";
+          feedbackDiv.textContent = "";
+        }
+      }
+
+      function checkAnswer(selected) {
+        const feedbackDiv = document.getElementById("feedback");
+        const nextBtn = document.getElementById("nextQuestionBtn");
+        const optionsButtons = document.querySelectorAll("#options button");
+        optionsButtons.forEach(b => b.disabled = true);
+        let correct = false;
+        if (selected === currentAnswer) {
+          score++;
+          streak++;
+          correct = true;
+          if (streak > maxStreak) {
+            maxStreak = streak;
+            addAchievement("maxStreak", `Longest streak: ${maxStreak}`);
+          }
+          feedbackDiv.innerText = "✅ Correct!";
+          feedbackDiv.style.color = "green";
+        } else {
+          streak = 0;
+          wrongAnswers.push({
+            index: currentQuestionIndex,
+            question: quizQuestions[currentQuestionIndex],
+            userAnswer: selected
+          });
+          feedbackDiv.innerText = `❌ Incorrect! The correct answer is: ${currentAnswer}`;
+          feedbackDiv.style.color = "red";
+        }
+        updateStreakDisplay();
+        nextBtn.style.display = "inline-block";
+      }
+
+      function submitTypedAnswer() {
+        const answerInput = document.getElementById("answerInput");
+        const feedbackDiv = document.getElementById("feedback");
+        const nextBtn = document.getElementById("nextQuestionBtn");
+        const submitBtn = document.getElementById("submitAnswerBtn");
+        const userInputRaw = answerInput.value.trim();
+        if (!userInputRaw) return;
+        const userInputLC = userInputRaw.toLowerCase();
+        const correctKana = currentKanaAnswer;
+        const correctRomaji = quizQuestions[currentQuestionIndex].romaji.toLowerCase();
+
+        function isKana(str) {
+          return /^[\u3040-\u309F\u30A0-\u30FF]+$/.test(str);
+        }
+        let isCorrect = false;
+        if (isKana(userInputRaw)) {
+          isCorrect = (userInputRaw === correctKana);
+        } else {
+          isCorrect = (userInputLC === correctRomaji);
+        }
+        submitBtn.disabled = true;
+        answerInput.disabled = true;
+
+        if (isCorrect) {
+          score++;
+          streak++;
+          if (streak > maxStreak) addAchievement("maxStreak", `Longest streak: ${maxStreak}`);
+          feedbackDiv.innerText = "✅ Correct!";
+          feedbackDiv.style.color = "green";
+        } else {
+          streak = 0;
+          wrongAnswers.push({
+            index: currentQuestionIndex,
+            question: quizQuestions[currentQuestionIndex],
+            userAnswer: userInputRaw
+          });
+          feedbackDiv.innerText = `❌ Incorrect! The correct answers are: "${correctKana}" or "${correctRomaji}"`;
+          feedbackDiv.style.color = "red";
+        }
+        updateStreakDisplay();
+        nextBtn.style.display = "inline-block";
+      }
+
+      function nextQuestion() {
+        currentQuestionIndex++;
+        loadQuestion();
+      }
+
+      function updateProgressBar() {
+        const progressBar = document.getElementById("progress-bar");
+        const total = quizQuestions.length;
+        let pct = total === 0 ? 0 : (currentQuestionIndex / total) * 100;
+        if (pct > 100) pct = 100;
+        progressBar.style.width = pct + "%";
+      }
+
+      function endQuiz() {
+        stopTimer();
+        // Save spaced repetition data for wrong & correct answers
+        updateSRSData();
+
+        if (currentMode === "exam") {
+          saveScore(username, score, quizQuestions.length, selectedCategoryForScore, selectedDifficultyForScore);
+        }
+        document.getElementById("quiz").style.display = "none";
+        const resultDiv = document.getElementById("result");
+        resultDiv.style.display = "block";
+        const percentage = quizQuestions.length > 0 ? ((score / quizQuestions.length) * 100).toFixed(1) : 0;
+        resultDiv.textContent = `Your score is: ${score} / ${quizQuestions.length} (${percentage}%)`;
+
+        restartBtn.style.display = "inline-block";
+        hintButton.style.display = "none";
+        nextQuestionBtn.style.display = "none";
+        homeBtn.style.display = "inline-block";
+
+        updateProgressBar();
+
+        // Prompt for review if there were wrong answers
+        if (wrongAnswers.length > 0) {
+          setTimeout(() => {
+            if (confirm(`You have ${wrongAnswers.length} wrong answers. Would you like to review them?`)) {
+              startReviewMode();
+            }
+          }, 500);
+        }
+      }
+
+      function restartQuiz() {
+        document.getElementById("start-screen").style.display = "block";
+        document.getElementById("quiz").style.display = "none";
+        document.getElementById("result").style.display = "none";
+        restartBtn.style.display = "none";
+        homeBtn.style.display = "none";
+        hintButton.style.display = "none";
+
+        score = 0;
+        currentQuestionIndex = 0;
+        username = "";
+        selectedCategoryForScore = "";
+        selectedDifficultyForScore = "";
+        streak = 0;
+        maxStreak = 0;
+        wrongAnswers = [];
+        document.getElementById("username").value = "";
+        updateProgressBar();
+
+        categoryButtons.forEach(b => b.classList.remove("active"));
+        categoryButtons[categoryButtons.length - 1].classList.add("active");
+        updateQuestionCountOptions();
+        questionCountSelect.value = "max";
+
+        currentDifficulty = "medium";
+        difficultySelect.value = "medium";
+
+        currentMode = "practice";
+        const practiceRadio = document.querySelector('input[name="mode"][value="practice"]');
+        if (practiceRadio) practiceRadio.checked = true;
+
+        updateQuestionCountVisibility();
+      }
+
+      function saveScore(user, sc, totalQ, category, difficulty) {
+        const cat = (typeof category === 'string' && category.trim()) ? category.trim() : "N/A";
+        const diff = (typeof difficulty === 'string' && difficulty.trim()) ? difficulty.trim() : "N/A";
+        const scores = JSON.parse(localStorage.getItem("scores")) || [];
+        const percentageScore = totalQ > 0 ? (sc / totalQ) * 100 : 0;
+        scores.push({ username: user, score: sc, total: totalQ, percentage: percentageScore, category: cat, difficulty: diff });
+        scores.sort((a,b) => b.percentage - a.percentage);
+        localStorage.setItem("scores", JSON.stringify(scores));
+      }
+
+      function showScoreboard() {
+        document.getElementById("quiz").style.display = "none";
+        document.getElementById("result").style.display = "none";
+        document.getElementById("start-screen").style.display = "none";
+        document.getElementById("review-mode").style.display = "none";
+        document.getElementById("progress-page").style.display = "none";
+
+        restartBtn.style.display = "none";
+        hintButton.style.display = "none";
+        homeBtn.style.display = "inline-block";
+
+        document.getElementById("scoreboard").style.display = "block";
+
+        const scores = JSON.parse(localStorage.getItem("scores")) || [];
+        scoreList.innerHTML = "";
+
+        if (scores.length === 0) {
+          const li = document.createElement("li");
+          li.textContent = "No scores found.";
+          scoreList.appendChild(li);
+          return;
+        }
+
+        scores.forEach(({ username, score, total, percentage, category, difficulty }) => {
+          const li = document.createElement("li");
+          const scoreValue = typeof score === 'number' ? score : "N/A";
+          const totalValue = typeof total === 'number' ? total : "N/A";
+          const percentValue = (typeof percentage === 'number' && !isNaN(percentage)) ? percentage.toFixed(1) : "N/A";
+          const categoryValue = (typeof category === "string" && category.trim()) ? category : "N/A";
+          const difficultyValue = (typeof difficulty === "string" && difficulty.trim()) ? difficulty : "N/A";
+          li.textContent = `User: ${username} | Category: ${categoryValue} | Difficulty: ${difficultyValue} | Score: ${scoreValue} / ${totalValue} (${percentValue}%)`;
+          scoreList.appendChild(li);
+        });
+      }
+
+      function showProgressPage() {
+        // Hide other views
+        document.getElementById("quiz").style.display = "none";
+        document.getElementById("result").style.display = "none";
+        document.getElementById("start-screen").style.display = "none";
+        document.getElementById("scoreboard").style.display = "none";
+        document.getElementById("review-mode").style.display = "none";
+
+        // Show progress page
+        progressPage.style.display = "block";
+        homeBtn.style.display = "inline-block";
+
+        // Load achievements
+        achievementsList.innerHTML = "";
+        let achievementsData = JSON.parse(localStorage.getItem("achievements")) || {};
+        if (Object.keys(achievementsData).length === 0) {
+          const li = document.createElement("li");
+          li.textContent = "No achievements earned yet.";
+          achievementsList.appendChild(li);
+        } else {
+          for (const key in achievementsData) {
+            const li = document.createElement("li");
+            li.textContent = `Achievement: ${key}`;
+            achievementsList.appendChild(li);
+          }
+        }
+
+        // Display simple progress info (you can expand)
+        progressInfo.textContent = `Total Quizzes Taken: ${getTotalQuizzesTaken()} | Max Streak Ever: ${getMaxStreakEver()}`;
+
+        // Load spaced repetition review list items
+        srsList.innerHTML = "";
+        const now = Date.now();
+        let dueItems = Object.values(spacedRepetitionData || {}).filter(e => e.nextReview && e.nextReview <= now);
+        if (dueItems.length === 0) {
+          const li = document.createElement("li");
+          li.textContent = "No words currently due for review.";
+          srsList.appendChild(li);
+        } else {
+          dueItems.forEach(entry => {
+            const li = document.createElement("li");
+            li.textContent = `${entry.item.nl} (${entry.item.kana}) - Due for review`;
+            srsList.appendChild(li);
+          });
+        }
+      }
+
+      // Simple placeholder functions for progress stats
+      function getTotalQuizzesTaken() {
+        const scores = JSON.parse(localStorage.getItem("scores")) || [];
+        return scores.length;
+      }
+      function getMaxStreakEver() {
+        const achievements = JSON.parse(localStorage.getItem("achievements")) || {};
+        // Example: parse maxStreak from a string like "Longest streak: 5"
+        if (achievements.maxStreak) {
+          const match = achievements.maxStreak.match(/\d+/);
+          return match ? Number(match[0]) : 0;
+        }
+        return 0;
+      }
+
+      function showHint() {
+        if (quizQuestions.length === 0 || currentQuestionIndex >= quizQuestions.length) {
+          alert("No hint available.");
+          return;
+        }
+        alert("Hint: " + quizQuestions[currentQuestionIndex].hint);
+      }
+
+      function updateSRSData() {
+        // Update spaced repetition data with performance on quizQuestions
+        // Basic: For wrong answers, schedule review sooner; for correct, space out
+        const now = Date.now();
+        wrongAnswers.forEach(({ question }) => {
+          const key = question.kana + "|" + question.nl;
+          // For new or failed items, set nextReview 1 day later
+          spacedRepetitionData[key] = {
+            item: question,
+            category: selectedCategoryForScore,
+            lastReviewed: now,
+            nextReview: now + 24*60*60*1000,
+            interval: 1,
+            easiness: 2.5,
+            repetition: 0
+          };
+        });
+        let correctQuestions = quizQuestions.filter(q => !wrongAnswers.some(w => w.question.kana === q.kana && w.question.nl === q.nl));
+        correctQuestions.forEach(question => {
+          const key = question.kana + "|" + question.nl;
+          let srs = spacedRepetitionData[key];
+          if (!srs) {
+            // Initialize new item spaced repetition data
+            spacedRepetitionData[key] = {
+              item: question,
+              category: selectedCategoryForScore,
+              lastReviewed: now,
+              nextReview: now + 2*24*60*60*1000,
+              interval: 2,
+              easiness: 2.5,
+              repetition: 1
+            };
+          } else {
+            // Update interval (simplified SM2 algorithm)
+            srs.lastReviewed = now;
+            srs.repetition++;
+            srs.easiness = Math.min(Math.max(srs.easiness + 0.1, 1.3), 2.5); // Slightly increase easiness on success
+            srs.interval = Math.round(srs.interval * srs.easiness);
+            srs.nextReview = now + srs.interval*24*60*60*1000;
+            spacedRepetitionData[key] = srs;
+          }
+        });
+        localStorage.setItem('srsData', JSON.stringify(spacedRepetitionData));
+      }
+
+      // Review mode variables
+      let reviewIdx = 0;
+
+      function startReviewMode() {
+        if (wrongAnswers.length === 0) return alert("No wrong answers to review.");
+        document.getElementById("start-screen").style.display = "none";
+        document.getElementById("quiz").style.display = "none";
+        document.getElementById("result").style.display = "none";
+        document.getElementById("review-mode").style.display = "block";
+        displayReviewItem(reviewIdx);
+      }
+      function displayReviewItem(index) {
+        if (index < 0) reviewIdx = 0;
+        else if (index >= wrongAnswers.length) reviewIdx = wrongAnswers.length - 1;
+        else reviewIdx = index;
+        const review = wrongAnswers[reviewIdx];
+        reviewQuestion.textContent = `Question: What does "${review.question.kana}" mean?`;
+        reviewCorrect.textContent = `Correct Answer: ${review.question.nl}`;
+        reviewUser.textContent = `Your Answer: ${review.userAnswer}`;
+      }
+      function reviewNavigate(offset) {
+        let newIdx = reviewIdx + offset;
+        if (newIdx < 0 || newIdx >= wrongAnswers.length) return;
+        displayReviewItem(newIdx);
+      }
+      function endReviewMode() {
+        document.getElementById("review-mode").style.display = "none";
+        document.getElementById("result").style.display = "block";
+      }
+
+      // Clear scoreboard with password
+      function clearScoreboardWithPassword() {
+        const password = prompt("Enter password to clear the scoreboard:");
+        const correctPassword = "admin123"; // Change this to your desired password
+        if (password === correctPassword) {
+          localStorage.removeItem("scores");
+          alert("Scoreboard cleared!");
+          showScoreboard();
+        } else {
+          alert("Incorrect password. Scoreboard not cleared.");
+        }
+      }
+    });
+  </script>
+</body>
+</html>
